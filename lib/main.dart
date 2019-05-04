@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Screens/FirstScreen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
@@ -6,7 +7,7 @@ void main() {
   runApp(MaterialApp(
     title: "My New App",
     theme: ThemeData(primarySwatch: Colors.red, brightness: Brightness.light),
-    home: HomeWidget()
+    home: FirstScreen()
   ));
 
 }
@@ -18,6 +19,8 @@ class HomeWidget extends StatefulWidget {
 
 class _HomeWidgetState extends State<HomeWidget>{
   bool color = true;
+  List apiData;
+
   @override
   void initState(){
     super.initState();
@@ -29,12 +32,15 @@ class _HomeWidgetState extends State<HomeWidget>{
     var url = "http://dummy.restapiexample.com/api/v1/employees";
     print("before");
     var response = await http.get(url);
-    print("response $response");
+    print("response ${response}");
     print("after");
 
     if(response.statusCode == 200){
       var jsonResponse = convert.jsonDecode(response.body);
       print(jsonResponse);
+      setState(() {
+       apiData = jsonResponse; 
+      });
     } else {
       print("Request failed with status : ${response.statusCode}.");
     }
@@ -47,8 +53,22 @@ class _HomeWidgetState extends State<HomeWidget>{
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
-        color: color ? Colors.blue : Colors.black,
-        child: Text(color.toString(), style : TextStyle(fontSize: 40,color: Colors.white)),
+        //color: color ? Colors.blue : Colors.black,
+        child: apiData == null 
+          ? CircularProgressIndicator()
+          : ListView.builder(
+            itemCount: apiData.length,
+            itemBuilder: (context,index){
+              return ListTile(
+                leading: CircleAvatar(
+                  child: Text("$index"),
+                ),
+                trailing: Text("${apiData[index]["employee_age"]}"),
+                title: Text("${apiData[index]["employee_name"]}"),
+                subtitle: Text("${apiData[index]["employee_salary"]}"),
+                );
+            },
+          )
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.cyan,
